@@ -1,25 +1,36 @@
+# Ba alert symptom-based: đo thứ người dùng/ngân sách cảm nhận được
+# (chậm, lỗi, tốn tiền), không đo trực tiếp tên component nội bộ.
 alerts:
-  - name: TODO_alert_1
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: chat_latency_p95_high
+    severity: high
+    condition: 'p95(latency_ms where event == "response_sent") > 2000'
+    duration: 5m
     type: symptom-based
+    sli: fast_successful_requests (config/slo.yaml)
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-k4-l3a-alerts"
+    owner: llm-app-oncall
     runbook: docs/alerts.md#alert-1
-  - name: TODO_alert_2
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: chat_error_rate_high
+    severity: critical
+    condition: 'count(event == "request_failed") / count(event == "request_received") * 100 > 2'
+    duration: 5m
     type: symptom-based
+    sli: fast_successful_requests + guardrail error_rate_pct_max (config/slo.yaml)
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-k4-l3a-alerts"
+    owner: llm-app-oncall
     runbook: docs/alerts.md#alert-2
-  - name: TODO_alert_3
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: llm_cost_per_request_high
+    severity: warning
+    # Baseline ~0.002 USD/request -> cảnh báo khi trung bình gấp đôi baseline.
+    condition: 'avg(cost_usd where event == "response_sent") > 0.004'
+    duration: 15m
     type: symptom-based
+    sli: guardrail daily_cost_usd_max (config/slo.yaml)
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-k4-l3a-alerts"
+    owner: llm-app-oncall
     runbook: docs/alerts.md#alert-3

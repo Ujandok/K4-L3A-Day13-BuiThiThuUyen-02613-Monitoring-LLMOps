@@ -4,13 +4,13 @@
 
 ## 1. Thông tin học viên
 
-- **Họ và tên:**
-- **MSSV:**
+- **Họ và tên:**Bùi Thị Thu Uyên
+- **MSSV:**2A202602613
 - **Lớp:** K4-L3A
-- **Repository URL:**
+- **Repository URL:**https://github.com/Ujandok/K4-L3A-Day13-BuiThiThuUyen-02613-Monitoring-LLMOps.git
 - **Commit SHA cuối:**
 - **Challenge ID:**
-- **Tên project Langfuse cá nhân:** `day13-k4-l3a-<MSSV>`
+- **Tên project Langfuse cá nhân:** `day13-k4-l3a-02613`
 
 ## 2. Evidence index
 
@@ -37,13 +37,13 @@
 
 | Nội dung | Baseline | Kết quả cuối | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | | | |
-| `validate_dashboard.py` | | | |
-| `pytest` | | | |
-| Số traces hợp lệ | | | |
-| Số PII leak | | | |
-| Latency P95 / TTFT P95 | | | |
-| Retrieval success rate | | | |
+| `validate_logs.py` | 30/100 | 100/100 | Baseline: 20/21 record có `correlation_id=MISSING` và thiếu enrichment. Sau CP1: middleware sinh/nhận `x-request-id`, bind context trước `request_received`, scrub PII trước khi render/ghi file |
+| `validate_dashboard.py` | 6/6 | 6/6 | Contract có sẵn trong `config/dashboard.yaml`; validator chỉ kiểm tra cấu trúc, dashboard runtime xem `evidence/11-dashboard-overview.png` |
+| `pytest` | Lỗi collection 2 file test | 28 passed | Baseline chạy nhầm Python của Anaconda (ngoài `.venv`) nên thiếu `structlog`, `langfuse`. Đã activate `.venv` và thêm test PII (CCCD, thẻ, passport) và middleware |
+| Số traces hợp lệ | 0 | <số trace> | Baseline chỉ có root observation `lab-agent-run`, chưa có child retrieval/generation nên chưa đạt yêu cầu waterfall |
+| Số PII leak | 0 | 0 | Baseline đã 0 vì `summarize_text()` gọi `scrub_text()` cho preview; nhưng chưa có processor scrub toàn bộ event trước khi ghi file. Sau CP1 scrub đệ quy mọi field, thêm CCCD/passport |
+| Latency P95 / TTFT P95 | 1466 ms / 50 ms | 5758 ms / 50 ms (tạm, đo sau CP1) | Mẫu nhỏ (~10–13 request) nên P95 ≈ max, bị 1 request outlier chi phối. TTFT ổn định 50 ms (FakeLLM sleep cố định) → phần chậm nằm ngoài LLM; nghi bước fetch prompt Langfuse (cache TTL 60s, timeout 2s) nằm trong `latency_ms`. Sẽ kiểm chứng bằng waterfall ở CP2 và đo lại trên workload sạch |
+| Retrieval success rate | 100% (10/10) | <sau CP2/CP3> | Không có `request_failed` trong baseline |
 
 ## 4. Logging và PII
 
